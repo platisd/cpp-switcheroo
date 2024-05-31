@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
-project(CppProject)
+project(Switcheroo)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 add_compile_options(
         -Wcast-align
         -Wpedantic
@@ -27,4 +27,9 @@ add_compile_options(
 
 add_subdirectory(external)
 enable_testing()
+
+add_executable(SwitcherooMain main.cpp
+        main.cpp
+        switcheroo/switcheroo.h)
+
 add_subdirectory(test)
