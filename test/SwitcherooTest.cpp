@@ -107,27 +107,19 @@ TEST_F(SwitcherooTest,
     EXPECT_EQ(result, 1);
 }
 
-// typeInTuple
-static_assert(typeInTuple<int, std::tuple<int, double, float>>::value);
-static_assert(!typeInTuple<int, std::tuple<double, float>>::value);
-
+// typeIn
+static_assert(typeIn<int, std::tuple<int, double, float>>::value);
+static_assert(!typeIn<int, std::tuple<double, float>>::value);
+static_assert(typeIn<int, std::variant<int, double, float>>::value);
+static_assert(!typeIn<int, std::variant<double, float>>::value);
+static_assert(
+    typeIn<std::integral_constant<long unsigned int, 0>,
+           std::tuple<std::integral_constant<long unsigned int, 0>,
+                      std::integral_constant<long unsigned int, 1>>>::value);
 // IndexOf
 static_assert(IndexOf<int, std::tuple<int, double, float>>::value == 0);
 static_assert(IndexOf<double, std::tuple<int, double, float>>::value == 1);
-
-// TupleTypesMatchVariant
-static_assert(TupleTypesMatchVariant<std::tuple<int, double, float>,
-                                     std::variant<int, float, double>>::value);
-static_assert(!TupleTypesMatchVariant<std::tuple<int, double>,
-                                      std::variant<double, float>>::value);
-
-// TupleSizeMatchVariantSize
-static_assert(
-    TupleSizeMatchVariantSize<std::tuple<int, double, float>,
-                              std::variant<int, float, float>>::value);
-static_assert(
-    !TupleSizeMatchVariantSize<std::tuple<int, double>,
-                               std::variant<double, float, float>>::value);
+static_assert(IndexOf<float, std::variant<int, double, float>>::value == 2);
 
 // CallableWithoutArgs
 static_assert(CallableWithoutArgs<std::function<void()>>::value);

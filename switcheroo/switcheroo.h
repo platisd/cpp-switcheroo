@@ -7,16 +7,24 @@
 namespace switcheroo
 {
 template<typename T, typename Tuple>
-struct typeInTuple;
+struct typeIn;
 
+// Specialization for std::tuple
 template<typename T, typename... Types>
-struct typeInTuple<T, std::tuple<Types...>>
+struct typeIn<T, std::tuple<Types...>>
     : std::disjunction<std::is_same<T, Types>...> {
 };
 
-template<class T, class Tuple>
+// Specialization for std::variant
+template<typename T, typename... Types>
+struct typeIn<T, std::variant<Types...>>
+    : std::disjunction<std::is_same<T, Types>...> {
+};
+
+template<class T, class Container>
 struct IndexOf;
 
+// Specialization for std::tuple
 template<class T, class... Types>
 struct IndexOf<T, std::tuple<T, Types...>> {
     static const std::size_t value = 0;
@@ -28,25 +36,16 @@ struct IndexOf<T, std::tuple<U, Types...>> {
         = 1 + IndexOf<T, std::tuple<Types...>>::value;
 };
 
-// Check if the types of a tuple can be found in a variant
-template<typename Tuple, typename Variant>
-struct TupleTypesMatchVariant;
-
-template<typename... TupleTypes, typename... VariantTypes>
-struct TupleTypesMatchVariant<std::tuple<TupleTypes...>,
-                              std::variant<VariantTypes...>> {
-    static const bool value
-        = (typeInTuple<TupleTypes, std::tuple<VariantTypes...>>::value && ...);
+// Specialization for std::variant
+template<class T, class... Types>
+struct IndexOf<T, std::variant<T, Types...>> {
+    static const std::size_t value = 0;
 };
 
-// Check that tuple types are as many as variant types
-template<typename Tuple, typename Variant>
-struct TupleSizeMatchVariantSize;
-
-template<typename... TupleTypes, typename... VariantTypes>
-struct TupleSizeMatchVariantSize<std::tuple<TupleTypes...>,
-                                 std::variant<VariantTypes...>> {
-    static const bool value = sizeof...(TupleTypes) == sizeof...(VariantTypes);
+template<class T, class U, class... Types>
+struct IndexOf<T, std::variant<U, Types...>> {
+    static const std::size_t value
+        = 1 + IndexOf<T, std::variant<Types...>>::value;
 };
 
 template<typename Callable>
@@ -56,7 +55,7 @@ struct CallableWithoutArgs {
 
 template<typename Variant,
          typename Matchers,
-         typename MatcherArgsT,
+         typename MatcherArgIndexesT,
          typename FallbackMatcher,
          bool fallbackProvided = false>
 class MatcherBuilder
@@ -64,11 +63,11 @@ class MatcherBuilder
 public:
     MatcherBuilder(Variant variant, // TODO: Avoid copy?
                    Matchers matchers,
-                   MatcherArgsT matcherArgTypes,
+                   MatcherArgIndexesT matcherArgIndexes,
                    FallbackMatcher fallbackMatcher)
         : mVariant{std::move(variant)}
         , mMatchers{std::move(matchers)}
-        , mMatcherArgTypes{std::move(matcherArgTypes)}
+        , mMatcherArgIndexes{std::move(matcherArgIndexes)}
         , mFallbackMatcher{fallbackMatcher}
     {
     }
@@ -80,20 +79,26 @@ public:
             mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
         using NewMatchersType = decltype(newMatchers);
 
-        auto newMatcherArgTypes
-            = std::tuple_cat(mMatcherArgTypes, std::tuple<MatcherArg>{});
-        using NewMatcherArgTypes = decltype(newMatcherArgTypes);
-        static_assert(!typeInTuple<MatcherArg, MatcherArgsT>::value,
+        static_assert(typeIn<MatcherArg, Variant>::value,
+                      "Matcher type not found in variant");
+
+        const auto matcherArgIndex = IndexOf<MatcherArg, Variant>::value;
+        using MatcherArgIndexType
+            = std::integral_constant<std::size_t, matcherArgIndex>;
+        static_assert(!typeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
                       "Type already matched, cannot match again");
 
-        static_assert(TupleTypesMatchVariant<MatcherArgsT, Variant>::value,
-                      "You may only match on the types of the variant");
+        const auto newMatcherArgIndexes = std::tuple_cat(
+            mMatcherArgIndexes,
+            std::tuple<MatcherArgIndexType>{MatcherArgIndexType{}});
+        using NewMatcherArgIndexesType
+            = std::decay_t<decltype(newMatcherArgIndexes)>;
 
         return MatcherBuilder<Variant,
                               NewMatchersType,
-                              NewMatcherArgTypes,
+                              NewMatcherArgIndexesType,
                               FallbackMatcher>{
-            mVariant, newMatchers, newMatcherArgTypes, mFallbackMatcher};
+            mVariant, newMatchers, newMatcherArgIndexes, mFallbackMatcher};
     }
 
     template<typename NewFallbackMatcher>
@@ -102,12 +107,12 @@ public:
         static_assert(CallableWithoutArgs<NewFallbackMatcher>::value);
         return MatcherBuilder<Variant,
                               Matchers,
-                              MatcherArgsT,
+                              MatcherArgIndexesT,
                               NewFallbackMatcher,
                               true /* fallbackProvided */>{
             mVariant,
             mMatchers,
-            mMatcherArgTypes,
+            mMatcherArgIndexes,
             std::forward<NewFallbackMatcher>(fallbackMatcher)};
     }
 
@@ -117,16 +122,21 @@ public:
         // matcher arguments
         static_assert(
             fallbackProvided
-                != TupleSizeMatchVariantSize<MatcherArgsT, Variant>::value,
+                != (std::tuple_size_v<MatcherArgIndexesT>
+                    == std::variant_size_v<Variant>),
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");
 
         return std::visit(
             [this](auto&& arg) {
-                using ArgT = std::decay_t<decltype(arg)>;
-                if constexpr (typeInTuple<ArgT, MatcherArgsT>::value) {
-                    const auto index = IndexOf<ArgT, MatcherArgsT>::value;
+                using ArgT          = std::decay_t<decltype(arg)>;
+                const auto argIndex = IndexOf<ArgT, Variant>::value;
+                using ArgIndexType
+                    = std::integral_constant<std::size_t, argIndex>;
+                if constexpr (typeIn<ArgIndexType, MatcherArgIndexesT>::value) {
+                    const auto index
+                        = IndexOf<ArgIndexType, MatcherArgIndexesT>::value;
                     return std::get<index>(mMatchers)(arg);
                 } else {
                     return mFallbackMatcher();
@@ -138,7 +148,7 @@ public:
 private:
     Variant mVariant;
     Matchers mMatchers;
-    MatcherArgsT mMatcherArgTypes;
+    MatcherArgIndexesT mMatcherArgIndexes;
     FallbackMatcher mFallbackMatcher;
 };
 
