@@ -9,17 +9,17 @@ namespace switcheroo
 namespace detail
 {
 template<typename T, typename Tuple>
-struct typeIn;
+struct TypeIn;
 
 // Specialization for std::tuple
 template<typename T, typename... Types>
-struct typeIn<T, std::tuple<Types...>>
+struct TypeIn<T, std::tuple<Types...>>
     : std::disjunction<std::is_same<T, Types>...> {
 };
 
 // Specialization for std::variant
 template<typename T, typename... Types>
-struct typeIn<T, std::variant<Types...>>
+struct TypeIn<T, std::variant<Types...>>
     : std::disjunction<std::is_same<T, Types>...> {
 };
 
@@ -82,7 +82,7 @@ public:
             mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
         using NewMatchersType = decltype(newMatchers);
 
-        static_assert(detail::typeIn<MatcherArg, Variant>::value,
+        static_assert(detail::TypeIn<MatcherArg, Variant>::value,
                       "Matcher type not found in variant");
 
         const auto matcherArgIndex
@@ -90,7 +90,7 @@ public:
         using MatcherArgIndexType
             = std::integral_constant<std::size_t, matcherArgIndex>;
         static_assert(
-            !detail::typeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
+            !detail::TypeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
             "Type already matched, cannot match again");
 
         const auto newMatcherArgIndexes = std::tuple_cat(
@@ -139,7 +139,7 @@ public:
                 const auto argIndex = detail::IndexOf<ArgT, Variant>::value;
                 using ArgIndexType
                     = std::integral_constant<std::size_t, argIndex>;
-                if constexpr (detail::typeIn<ArgIndexType,
+                if constexpr (detail::TypeIn<ArgIndexType,
                                              MatcherArgIndexesT>::value) {
                     const auto index
                         = detail::IndexOf<ArgIndexType,

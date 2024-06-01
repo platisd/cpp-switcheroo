@@ -109,13 +109,13 @@ TEST_F(SwitcherooTest,
 
 namespace switcheroo::detail
 {
-// typeIn
-static_assert(typeIn<int, std::tuple<int, double, float>>::value);
-static_assert(!typeIn<int, std::tuple<double, float>>::value);
-static_assert(typeIn<int, std::variant<int, double, float>>::value);
-static_assert(!typeIn<int, std::variant<double, float>>::value);
+// TypeIn
+static_assert(TypeIn<int, std::tuple<int, double, float>>::value);
+static_assert(!TypeIn<int, std::tuple<double, float>>::value);
+static_assert(TypeIn<int, std::variant<int, double, float>>::value);
+static_assert(!TypeIn<int, std::variant<double, float>>::value);
 static_assert(
-    typeIn<std::integral_constant<long unsigned int, 0>,
+    TypeIn<std::integral_constant<long unsigned int, 0>,
            std::tuple<std::integral_constant<long unsigned int, 0>,
                       std::integral_constant<long unsigned int, 1>>>::value);
 // IndexOf
