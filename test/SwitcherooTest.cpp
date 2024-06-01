@@ -107,6 +107,8 @@ TEST_F(SwitcherooTest,
     EXPECT_EQ(result, 1);
 }
 
+namespace switcheroo::detail
+{
 // typeIn
 static_assert(typeIn<int, std::tuple<int, double, float>>::value);
 static_assert(!typeIn<int, std::tuple<double, float>>::value);
@@ -124,3 +126,4 @@ static_assert(IndexOf<float, std::variant<int, double, float>>::value == 2);
 // CallableWithoutArgs
 static_assert(CallableWithoutArgs<std::function<void()>>::value);
 static_assert(!CallableWithoutArgs<std::function<void(int)>>::value);
+} // namespace switcheroo::detail

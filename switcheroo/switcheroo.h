@@ -6,6 +6,8 @@
 
 namespace switcheroo
 {
+namespace detail
+{
 template<typename T, typename Tuple>
 struct typeIn;
 
@@ -52,6 +54,7 @@ template<typename Callable>
 struct CallableWithoutArgs {
     static const bool value = std::is_invocable<Callable>::value;
 };
+} // namespace detail
 
 template<typename Variant,
          typename Matchers,
@@ -79,14 +82,16 @@ public:
             mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
         using NewMatchersType = decltype(newMatchers);
 
-        static_assert(typeIn<MatcherArg, Variant>::value,
+        static_assert(detail::typeIn<MatcherArg, Variant>::value,
                       "Matcher type not found in variant");
 
-        const auto matcherArgIndex = IndexOf<MatcherArg, Variant>::value;
+        const auto matcherArgIndex
+            = detail::IndexOf<MatcherArg, Variant>::value;
         using MatcherArgIndexType
             = std::integral_constant<std::size_t, matcherArgIndex>;
-        static_assert(!typeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
-                      "Type already matched, cannot match again");
+        static_assert(
+            !detail::typeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
+            "Type already matched, cannot match again");
 
         const auto newMatcherArgIndexes = std::tuple_cat(
             mMatcherArgIndexes,
@@ -104,7 +109,7 @@ public:
     template<typename NewFallbackMatcher>
     [[nodiscard]] auto otherwise(NewFallbackMatcher&& fallbackMatcher) const
     {
-        static_assert(CallableWithoutArgs<NewFallbackMatcher>::value);
+        static_assert(detail::CallableWithoutArgs<NewFallbackMatcher>::value);
         return MatcherBuilder<Variant,
                               Matchers,
                               MatcherArgIndexesT,
@@ -131,12 +136,14 @@ public:
         return std::visit(
             [this](auto&& arg) {
                 using ArgT          = std::decay_t<decltype(arg)>;
-                const auto argIndex = IndexOf<ArgT, Variant>::value;
+                const auto argIndex = detail::IndexOf<ArgT, Variant>::value;
                 using ArgIndexType
                     = std::integral_constant<std::size_t, argIndex>;
-                if constexpr (typeIn<ArgIndexType, MatcherArgIndexesT>::value) {
+                if constexpr (detail::typeIn<ArgIndexType,
+                                             MatcherArgIndexesT>::value) {
                     const auto index
-                        = IndexOf<ArgIndexType, MatcherArgIndexesT>::value;
+                        = detail::IndexOf<ArgIndexType,
+                                          MatcherArgIndexesT>::value;
                     return std::get<index>(mMatchers)(arg);
                 } else {
                     return mFallbackMatcher();
