@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <variant>
 
 #include "switcheroo/switcheroo.h"
@@ -12,6 +13,7 @@ struct Green {
 };
 
 struct Blue {
+    std::string blue{"blue"};
 };
 
 int main()
