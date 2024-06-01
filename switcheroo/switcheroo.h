@@ -64,7 +64,7 @@ template<typename Variant,
 class MatcherBuilder
 {
 public:
-    MatcherBuilder(Variant variant, // TODO: Avoid copy?
+    MatcherBuilder(Variant variant,
                    Matchers matchers,
                    MatcherArgIndexesT matcherArgIndexes,
                    FallbackMatcher fallbackMatcher)
