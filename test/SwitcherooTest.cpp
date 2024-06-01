@@ -28,7 +28,7 @@ TEST_F(SwitcherooTest, switcheroo_whenCalled_WillInvokeCorrectCallback)
     std::variant<std::monostate, Red, Green, Blue> color{Green{}};
 
     auto result
-        = Match(color)
+        = match(color)
               .when<Red>([](const auto&) { return "red"s; })
               .when<Green>([](const auto&) { return "green"s; })
               .when<Blue>([](const auto&) { return "blue"s; })
@@ -43,7 +43,7 @@ TEST_F(SwitcherooTest,
 {
     std::variant<std::monostate, Red, Green, Blue> color{Blue{42}};
 
-    auto result = Match(color)
+    auto result = match(color)
                       .when<Red>([](const auto& c) { return c.red; })
                       .when<Green>([](const auto& c) { return c.green; })
                       .when<Blue>([](const auto& c) { return c.blue; })
@@ -58,7 +58,7 @@ TEST_F(SwitcherooTest, switcheroo_whenMonoState_WillInvokeCorrectCallback)
     std::variant<std::monostate, Red, Green, Blue> color{};
 
     auto result
-        = Match(color)
+        = match(color)
               .when<Red>([](const auto&) { return "red"s; })
               .when<Green>([](const auto&) { return "green"s; })
               .when<Blue>([](const auto&) { return "blue"s; })
@@ -72,7 +72,7 @@ TEST_F(SwitcherooTest, switcheroo_whenNoMatch_WillInvokeOtherwiseCallback)
 {
     std::variant<std::monostate, Red, Green, Blue> color{};
 
-    auto result = Match(color)
+    auto result = match(color)
                       .when<Red>([](const auto&) { return 0; })
                       .otherwise([]() { return -1; })
                       .run();
@@ -85,7 +85,7 @@ TEST_F(SwitcherooTest,
 {
     std::variant<std::monostate, Red, Green, Blue> color{Green{}};
 
-    auto result = Match(color)
+    auto result = match(color)
                       .when<Green>([](const auto&) { return 0; })
                       .otherwise([]() { return -1; })
                       .run();
@@ -98,7 +98,7 @@ TEST_F(SwitcherooTest,
 {
     std::variant<Red, Green, Blue> color{Green{}};
 
-    auto result = Match(color)
+    auto result = match(color)
                       .when<Blue>([](const auto&) { return 2; })
                       .when<Green>([](const auto&) { return 1; })
                       .when<Red>([](const auto&) { return 0; })

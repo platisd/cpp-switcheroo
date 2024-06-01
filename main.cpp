@@ -24,7 +24,7 @@ int main()
     const std::variant<std::monostate, Red, Green, Blue> color{Green{}};
 
     const auto result
-        = Match(color)
+        = match(color)
               .when<Red>([](const Red& r) { return r.red; })
               .when<Green>([](const auto& g) { return g.green; })
               .when<Blue>([](auto) { return "blue"s; })
@@ -33,7 +33,7 @@ int main()
 
     std::cout << "Result: " << result << '\n'; // Result: green
 
-    const auto result2 = Match(color)
+    const auto result2 = match(color)
                              .when<Red>([](const auto&) { return 0; })
                              .otherwise([]() { return -1; })
                              .run();

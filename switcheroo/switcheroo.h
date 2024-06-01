@@ -160,7 +160,7 @@ private:
 };
 
 template<typename Variant>
-auto Match(Variant variant)
+auto match(Variant variant)
 {
     return MatcherBuilder{variant, std::tuple<>(), std::tuple<>(), []() {}};
 }
