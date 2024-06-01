@@ -56,7 +56,6 @@ struct CallableWithoutArgs {
 
 template<typename Variant,
          typename Matchers,
-         typename MatcherReturnT,
          typename MatcherArgsT,
          typename FallbackMatcher,
          bool fallbackProvided = false>
@@ -65,12 +64,10 @@ class MatcherBuilder
 public:
     MatcherBuilder(Variant variant, // TODO: Avoid copy?
                    Matchers matchers,
-                   MatcherReturnT matcherReturnTypes,
                    MatcherArgsT matcherArgTypes,
                    FallbackMatcher fallbackMatcher)
         : mVariant{std::move(variant)}
         , mMatchers{std::move(matchers)}
-        , mMatcherReturnTypes{std::move(matcherReturnTypes)}
         , mMatcherArgTypes{std::move(matcherArgTypes)}
         , mFallbackMatcher{fallbackMatcher}
     {
@@ -81,15 +78,7 @@ public:
     {
         auto newMatchers = std::tuple_cat(
             mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
-        using NewMatchersType      = decltype(newMatchers);
-        using MatcherReturnType    = std::invoke_result_t<Matcher, MatcherArg>;
-        auto newMatcherReturnTypes = std::tuple_cat(
-            mMatcherReturnTypes, std::tuple<MatcherReturnType>{});
-        using NewMatcherReturnTypes = decltype(newMatcherReturnTypes);
-        static_assert(
-            std::is_same_v<MatcherReturnType,
-                           std::tuple_element_t<0, NewMatcherReturnTypes>>,
-            "All matchers must have the same return type");
+        using NewMatchersType = decltype(newMatchers);
 
         auto newMatcherArgTypes
             = std::tuple_cat(mMatcherArgTypes, std::tuple<MatcherArg>{});
@@ -102,13 +91,9 @@ public:
 
         return MatcherBuilder<Variant,
                               NewMatchersType,
-                              NewMatcherReturnTypes,
                               NewMatcherArgTypes,
-                              FallbackMatcher>{mVariant,
-                                               newMatchers,
-                                               newMatcherReturnTypes,
-                                               newMatcherArgTypes,
-                                               mFallbackMatcher};
+                              FallbackMatcher>{
+            mVariant, newMatchers, newMatcherArgTypes, mFallbackMatcher};
     }
 
     template<typename NewFallbackMatcher>
@@ -117,13 +102,11 @@ public:
         static_assert(CallableWithoutArgs<NewFallbackMatcher>::value);
         return MatcherBuilder<Variant,
                               Matchers,
-                              MatcherReturnT,
                               MatcherArgsT,
                               NewFallbackMatcher,
                               true /* fallbackProvided */>{
             mVariant,
             mMatchers,
-            mMatcherReturnTypes,
             mMatcherArgTypes,
             std::forward<NewFallbackMatcher>(fallbackMatcher)};
     }
@@ -155,7 +138,6 @@ public:
 private:
     Variant mVariant;
     Matchers mMatchers;
-    MatcherReturnT mMatcherReturnTypes;
     MatcherArgsT mMatcherArgTypes;
     FallbackMatcher mFallbackMatcher;
 };
@@ -163,8 +145,7 @@ private:
 template<typename Variant>
 auto Match(Variant variant)
 {
-    return MatcherBuilder{
-        variant, std::tuple<>(), std::tuple<>(), std::tuple<>(), []() {}};
+    return MatcherBuilder{variant, std::tuple<>(), std::tuple<>(), []() {}};
 }
 } // namespace switcheroo
 
