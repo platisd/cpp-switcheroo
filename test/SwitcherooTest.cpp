@@ -107,6 +107,29 @@ TEST_F(SwitcherooTest,
     EXPECT_EQ(result, 1);
 }
 
+TEST_F(SwitcherooTest, switcheroo_whenNoReturnTypeInMatchers_WillStillWork)
+{
+    std::variant<std::monostate, Red, Green, Blue> color{Green{}};
+
+    match(color)
+        .when<Red>([](const auto&) { std::cout << "Red\n"; })
+        .when<Green>([](const auto&) { std::cout << "Green\n"; })
+        .when<Blue>([](const auto&) { std::cout << "Blue\n"; })
+        .when<std::monostate>([](const auto&) { std::cout << "No color\n"; })
+        .run();
+}
+
+TEST_F(SwitcherooTest,
+       switcheroo_whenNoReturnTypeInMatchersAndOtherwise_WillStillWork)
+{
+    std::variant<std::monostate, Red, Green, Blue> color{Green{}};
+
+    match(color)
+        .when<Red>([](const auto&) { std::cout << "Red\n"; })
+        .otherwise([]() { std::cout << "Otherwise\n"; })
+        .run();
+}
+
 namespace switcheroo::detail
 {
 // TypeIn
