@@ -166,17 +166,17 @@ int main()
     - Does not allow a default case if all cases are covered
 - Type-safe
 - Easier (IMHO) to understand than `std::visit` and the "overload" pattern
+  - Less "exotic" syntax
+  - I would argue developers familiar with the "overload" visitor pattern,
+    would have no issue understanding `cpp-switcheroo` and so would developers who are not familiar with the pattern
+    at all
 
 **Cons:**
 
 - Needs C++17 or later
-- Requires the inclusion of an external library (header-only)
+- Requires the inclusion of the `cpp-switcheroo` library (header-only)
 - The least efficient of the three (but unlikely to be a bottleneck)
-- (IMHO) Easier to understand than `std::visit` and the "overload" pattern
-    - Less "exotic" syntax
-    - I would argue developers familiar with the "overload" visitor pattern,
-      would have no issue understanding `cpp-switcheroo` and so would developers who are not familiar with the pattern
-      at all
+
 
 ### Comparison
 
