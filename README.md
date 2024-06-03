@@ -5,8 +5,11 @@ A compile-time "switch-like" statement for C++17 and later. 🪄
 ## What is this?
 
 `cpp-switcheroo` is a header-only library that provides a compile-time "switch-like" statement for C++17 and later.
-It is a type-safe alternative to the traditional `switch` statement, and a (IMHO) more readable alternative to
-visiting `std::variant` types with the "overload" pattern.
+It is a safer alternative to the traditional `switch` statement, and a (IMHO) more readable alternative to
+visiting `std::variant` types with the "Overload" pattern.
+While the library introduces additional syntax compared to
+the ["Overload" pattern](#stdvisit-a-stdvariant-with-the-overload-pattern),
+I personally find the added bits enhance readability and make the code less "exotic".
 
 Let's see the differences between the three approaches:
 
@@ -57,6 +60,9 @@ int main()
 - No type safety, (e.g. may static cast an integer to the enum type)
 
 ### `std::visit` a `std::variant` with the "overload" pattern
+
+Read more about the pattern and how it
+works [here](https://www.modernescpp.com/index.php/visiting-a-std-variant-with-the-overload-pattern/).
 
 ```cpp
 #include <iostream>
