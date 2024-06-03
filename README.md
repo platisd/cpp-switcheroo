@@ -85,6 +85,11 @@ int main()
                                       color);
     std::cout << colorName << std::endl;
 
+    const auto anotherColorName = std::visit(Overload{[](Red) { return "Red"s; },
+                                                      [](auto) { return "not red"s; }},
+                                             color);
+    std::cout << anotherColorName << std::endl;
+
     return 0;
 }
 ```
@@ -105,8 +110,7 @@ int main()
 - Some developers may not be familiar with the "overload" pattern
   - Exotic syntax
   - Not obvious what's happening
-- Cannot willingly defer to a default case
-  - Must handle all cases
+- Allows a default case even if all cases are covered
 
 ### `cpp-switcheroo`
 
@@ -152,6 +156,7 @@ int main()
 - Can't forget a case
   - Enforced by the compiler
   - Can defer to a default case with `otherwise`
+  - Does not allow a default case if all cases are covered
 - Type-safe
 - Easier (IMHO) to understand than `std::visit` and the "overload" pattern
 
@@ -166,16 +171,16 @@ int main()
 
 ### Comparison
 
-| Feature                     | `switch` | `Overload` | `cpp-switcheroo` |
-| --------------------------- | -------- | ---------- | ---------------- |
-| Use with many types         | ❌        | ✅          | ✅                |
-| Inhibit forgetting a case   | ❌        | ✅          | ✅                |
-| Defer to a default case     | ✅        | ❌          | ✅                |
-| Easy to understand          | 🥇        | 🥉          | 🥈 (IMHO)         |
-| Works with any C++ standard | ✅        | ❌          | ❌                |
-| Type-safe                   | ❌        | ✅          | ✅                |
-| Require boilerplate code    | 🥇        | 🥈          | 🥉                |
-| Efficiency                  | 🥇        | 🥈          | 🥉                |
+| Feature                        | `switch` | `Overload` | `cpp-switcheroo` |
+| ------------------------------ | -------- | ---------- | ---------------- |
+| Use with many types            | ❌        | ✅          | ✅                |
+| Inhibit forgetting a case      | ❌        | ✅          | ✅                |
+| Avoid unnecessary default case | ❌        | ❌          | ✅                |
+| Easy to understand             | 🥇        | 🥉          | 🥈 (IMHO)         |
+| Works with any C++ standard    | ✅        | ❌          | ❌                |
+| Type-safe                      | ❌        | ✅          | ✅                |
+| Require boilerplate code       | 🥇        | 🥈          | 🥉                |
+| Efficiency                     | 🥇        | 🥈          | 🥉                |
 
 ## How to use
 
