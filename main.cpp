@@ -35,7 +35,7 @@ int main()
 
     const auto result2 = match(color)
                              .when<Red>([](const auto&) { return 0; })
-                             .otherwise([]() { return -1; })
+                             .otherwise([](auto) { return -1; })
                              .run();
     std::cout << "Result2: " << result2 << '\n'; // Result2: -1
 

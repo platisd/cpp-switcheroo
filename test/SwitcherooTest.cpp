@@ -74,7 +74,7 @@ TEST_F(SwitcherooTest, switcheroo_whenNoMatch_WillInvokeOtherwiseCallback)
 
     auto result = match(color)
                       .when<Red>([](const auto&) { return 0; })
-                      .otherwise([]() { return -1; })
+                      .otherwise([](auto) { return -1; })
                       .run();
 
     EXPECT_EQ(result, -1);
@@ -87,7 +87,7 @@ TEST_F(SwitcherooTest,
 
     auto result = match(color)
                       .when<Green>([](const auto&) { return 0; })
-                      .otherwise([]() { return -1; })
+                      .otherwise([](auto) { return -1; })
                       .run();
 
     EXPECT_EQ(result, 0);
@@ -126,7 +126,7 @@ TEST_F(SwitcherooTest,
 
     match(color)
         .when<Red>([](const auto&) { std::cout << "Red\n"; })
-        .otherwise([]() { std::cout << "Otherwise\n"; })
+        .otherwise([](auto) { std::cout << "Otherwise\n"; })
         .run();
 }
 
@@ -149,4 +149,38 @@ static_assert(IndexOf<float, std::variant<int, double, float>>::value == 2);
 // CallableWithoutArgs
 static_assert(CallableWithoutArgs<std::function<void()>>::value);
 static_assert(!CallableWithoutArgs<std::function<void(int)>>::value);
+
+// MissingTypes
+static_assert(
+    std::is_same_v<MissingTypes<std::tuple<int, double, float>,
+                                std::tuple<int, double, float, char>>::type,
+                   std::tuple<char>>);
+static_assert(std::is_same_v<MissingTypes<std::tuple<int, double, float>,
+                                          std::tuple<int, double, float>>::type,
+                             std::tuple<>>);
+
+// ToTupleOfIntegralConstants
+static_assert(
+    std::is_same_v<
+        ToTupleOfIntegralConstants<std::integer_sequence<int, 0, 1, 2>>::type,
+        std::tuple<std::integral_constant<int, 0>,
+                   std::integral_constant<int, 1>,
+                   std::integral_constant<int, 2>>>);
+
+// MissingTypes
+static_assert(
+    std::is_same_v<MissingTypes<std::tuple<int, double, float>,
+                                std::tuple<int, double, float, char>>::type,
+                   std::tuple<char>>);
+static_assert(std::is_same_v<MissingTypes<std::tuple<int, double, float>,
+                                          std::tuple<int, double, float>>::type,
+                             std::tuple<>>);
+
+// multipleInTuple
+TEST(MultiplyInTupleTest, multiplyInTuple)
+{
+    auto result = multiplyInTuple(1, std::make_index_sequence<3>{});
+    EXPECT_EQ(result, std::make_tuple(1, 1, 1));
+}
+
 } // namespace switcheroo::detail
