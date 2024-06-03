@@ -24,21 +24,20 @@ enum class Color { Red, Green, Blue };
 int main()
 {
     Color color{Color::Green};
-    using namespace std::string_literals;
 
     std::string colorName{};
     switch (color) {
     case Color::Red:
-        colorName = "Red"s;
+        colorName = "Red";
         break;
     case Color::Green:
-        colorName = "Green"s;
+        colorName = "Green";
         break;
     case Color::Blue:
-        colorName = "Blue"s;
+        colorName = "Blue";
         break;
     default:
-        colorName = "Unknown"s;
+        colorName = "Unknown";
     }
     std::cout << colorName << std::endl;
 
@@ -66,7 +65,6 @@ works [here](https://www.modernescpp.com/index.php/visiting-a-std-variant-with-t
 
 ```cpp
 #include <iostream>
-#include <string>
 #include <variant>
 
 struct Red {};
@@ -86,16 +84,15 @@ Overload(Ts...) -> Overload<Ts...>;
 int main()
 {
     const Color color{Green{}};
-    using namespace std::string_literals;
 
-    const auto colorName = std::visit(Overload{[](Red) { return "Red"s; },
-                                               [](Green) { return "Green"s; },
-                                               [](Blue) { return "Blue"s; }},
+    const auto colorName = std::visit(Overload{[](Red) { return "Red"; },
+                                               [](Green) { return "Green"; },
+                                               [](Blue) { return "Blue"; }},
                                       color);
     std::cout << colorName << std::endl;
 
-    const auto anotherColorName = std::visit(Overload{[](Red) { return "Red"s; },
-                                                      [](auto) { return "not red"s; }},
+    const auto anotherColorName = std::visit(Overload{[](Red) { return "Red"; },
+                                                      [](auto) { return "not red"; }},
                                              color);
     std::cout << anotherColorName << std::endl;
 
@@ -128,7 +125,6 @@ int main()
 ```cpp
 
 #include <iostream>
-#include <string>
 
 #include "switcheroo/switcheroo.h"
 
@@ -139,21 +135,20 @@ using Color = std::variant<Red, Green, Blue>;
 
 int main()
 {
-    using namespace std::string_literals;
     using namespace switcheroo;
 
     const Color color{Green{}};
 
     const auto colorName = match(color)
-                               .when<Red>([](auto) { return "red"s; })
-                               .when<Green>([](auto) { return "green"s; })
-                               .when<Blue>([](auto) { return "blue"s; })
+                               .when<Red>([](auto) { return "red"; })
+                               .when<Green>([](auto) { return "green"; })
+                               .when<Blue>([](auto) { return "blue"; })
                                .run();
     std::cout << colorName << std::endl;
 
     const auto anotherColorName = match(color)
-                                      .when<Red>([](auto) { return "red"s; })
-                                      .otherwise([](auto) { return "not red"s; })
+                                      .when<Red>([](auto) { return "red"; })
+                                      .otherwise([](auto) { return "not red"; })
                                       .run();
     std::cout << anotherColorName << std::endl;
 
@@ -186,15 +181,15 @@ int main()
 ### Comparison
 
 | Feature                        | `switch` | `Overload` | `cpp-switcheroo` |
-|--------------------------------|----------|------------|------------------|
+| ------------------------------ | -------- | ---------- | ---------------- |
 | Use with many types            | ❌        | ✅          | ✅                |
 | Inhibit forgetting a case      | ❌        | ✅          | ✅                |
 | Avoid unnecessary default case | ❌        | ❌          | ✅                |
-| Easy to understand             | 🥇       | 🥉         | 🥈 (IMHO)        |
+| Easy to understand             | 🥇        | 🥉          | 🥈 (IMHO)         |
 | Works with any C++ standard    | ✅        | ❌          | ❌                |
 | Type-safe                      | ❌        | ✅          | ✅                |
-| Require boilerplate code       | 🥇       | 🥈         | 🥉               |
-| Efficiency                     | 🥇       | 🥈         | 🥉               |
+| Require boilerplate code       | 🥇        | 🥈          | 🥉                |
+| Efficiency                     | 🥇        | 🥈          | 🥉                |
 
 ## How to use
 
