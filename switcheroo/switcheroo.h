@@ -109,7 +109,8 @@ public:
     template<typename NewFallbackMatcher>
     [[nodiscard]] auto otherwise(NewFallbackMatcher&& fallbackMatcher) const
     {
-        static_assert(detail::CallableWithoutArgs<NewFallbackMatcher>::value);
+        static_assert(detail::CallableWithoutArgs<NewFallbackMatcher>::value,
+                      "Fallback matcher must not take any arguments");
         return MatcherBuilder<Variant,
                               Matchers,
                               MatcherArgIndexesT,
