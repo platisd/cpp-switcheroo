@@ -8,6 +8,9 @@ namespace switcheroo
 {
 namespace detail
 {
+/// @brief Check if the type T is in the tuple or variant
+/// @tparam T the type to search for
+/// @tparam Tuple the tuple (or variant) to search in
 template<typename T, typename Tuple>
 struct TypeIn;
 
@@ -23,6 +26,9 @@ struct TypeIn<T, std::variant<Types...>>
     : std::disjunction<std::is_same<T, Types>...> {
 };
 
+/// @brief Get the index of a type in a tuple or variant
+/// @tparam T the type to search for
+/// @tparam Container the tuple (or variant) to search in
 template<class T, class Container>
 struct IndexOf;
 
@@ -50,9 +56,16 @@ struct IndexOf<T, std::variant<U, Types...>> {
         = 1 + IndexOf<T, std::variant<Types...>>::value;
 };
 
-// ToTupleOfIntegralConstants
-// Given an std::integer_sequence, return a tuple of integral constants with
-// the same values
+/// @brief Given an std::integer_sequence, return a tuple of integral constants
+/// with the same values, e.g.:
+// std::integer_sequence<int, 1, 2, 3> ->
+// std::tuple
+//    <
+//    std::integral_constant<int, 1>,
+//    std::integral_constant<int, 2>,
+//    std::integral_constant<int, 3>
+//    >
+/// @tparam T the type of the integer sequence
 template<typename T>
 struct ToTupleOfIntegralConstants;
 
@@ -61,9 +74,11 @@ struct ToTupleOfIntegralConstants<std::integer_sequence<T, Is...>> {
     using type = std::tuple<std::integral_constant<T, Is>...>;
 };
 
-// MissingTypes
-// Given two tuples, return a tuple with the types that are in the second tuple
-// but not in the first tuple
+/// @brief Given two tuples, return a tuple with the types that are in the
+/// second but not in the first tuple, e.g.:
+// std::tuple<int, double, char> and std::tuple<int, char> -> std::tuple<double>
+/// @tparam Tuple1 the first tuple
+/// @tparam Tuple2 the second tuple
 template<typename Tuple1, typename Tuple2>
 struct MissingTypes;
 
@@ -77,6 +92,15 @@ struct MissingTypes<std::tuple<Types1...>, std::tuple<Types2...>> {
 
 // Given an element (first argument) and an integer sequence, return a tuple
 // that contains the element repeated as many times as the integer sequence
+
+/// @brief Given an element and an integer sequence, return a tuple that
+/// contains the element repeated as many times as the integer sequence
+///  e.g multiplyInTuple(5, std::index_sequence<0, 1, 2>) -> std::tuple<5, 5, 5>
+/// @tparam T the type of the element
+/// @tparam ...Is the integer sequence
+/// @param element the element to repeat
+/// @param Is the integer sequence
+/// @return a tuple with the element repeated as many times as the integer
 template<typename T, std::size_t... Is>
 auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
 {
@@ -89,6 +113,11 @@ template<typename Variant, typename Matchers, typename MatcherArgIndexesT>
 class MatcherBuilder
 {
 public:
+    /// @brief Construct a new MatcherBuilder object (only for internal use)
+    /// @param variant The variant to match
+    /// @param matchers The matchers (e.g. lambdas for every variant type)
+    /// @param matcherArgIndexes The indexes of the matched types (used
+    /// internally to determine which matcher corresponds to which type)
     MatcherBuilder(Variant variant,
                    Matchers matchers,
                    MatcherArgIndexesT matcherArgIndexes)
@@ -98,6 +127,11 @@ public:
     {
     }
 
+    /// @brief Add a matcher for a specific type
+    /// @tparam MatcherArg the type to match (e.g. int, double, etc.)
+    /// @tparam Matcher the type of the matcher
+    /// @param matcher a lambda that takes a MatcherArg argument
+    /// @return a new MatcherBuilder object with the added matcher
     template<typename MatcherArg, typename Matcher>
     [[nodiscard]] auto when(Matcher&& matcher) const
     {
@@ -130,6 +164,10 @@ public:
             mVariant, newMatchers, newMatcherArgIndexes};
     }
 
+    /// @brief The matcher to use when no other matcher matches
+    /// @tparam NewFallbackMatcher the type of the fallback matcher
+    /// @param fallbackMatcher the matcher to use when no other matcher
+    /// @return a new MatcherBuilder object with the added fallback matcher
     template<typename NewFallbackMatcher>
     [[nodiscard]] auto otherwise(NewFallbackMatcher&& fallbackMatcher) const
     {
@@ -158,11 +196,13 @@ public:
             mVariant, newMatchers, newMatcherArgIndexes};
     }
 
+    /// @brief Run the matchers and return the result
+    /// @return the result of the matched lambda
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<MatcherArgIndexesT>
-                == std::variant_size_v<Variant>,
+            std::tuple_size_v<
+                MatcherArgIndexesT> == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");
@@ -186,6 +226,13 @@ private:
     MatcherArgIndexesT mMatcherArgIndexes;
 };
 
+/// @brief Create a new Matcher, this is the entry point of the library
+/// @tparam Variant the type of the variant to match
+/// @param variant The variant that contains all the different "cases" to match
+/// as types, e.g. std::variant<Jan, Feb, Mar> assumes there are three different
+/// cases to match (Jan, Feb, Mar) where Jan, Feb, Mar are types (e.g. structs)
+/// @return a new MatcherBuilder object to add matchers using the
+/// MatcherBuilder::when and MatcherBuilder::otherwise methods
 template<typename Variant>
 auto match(Variant variant)
 {
