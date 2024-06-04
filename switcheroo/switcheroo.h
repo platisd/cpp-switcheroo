@@ -130,11 +130,13 @@ public:
     /// @brief Add a matcher for a specific type
     /// @tparam MatcherArg the type to match (e.g. int, double, etc.)
     /// @tparam Matcher the type of the matcher
-    /// @param matcher a lambda that takes a MatcherArg argument
+    /// @param matcher a lambda that takes a single MatcherArg argument
     /// @return a new MatcherBuilder object with the added matcher
     template<typename MatcherArg, typename Matcher>
     [[nodiscard]] auto when(Matcher&& matcher) const
     {
+        static_assert(std::is_invocable<Matcher, MatcherArg>::value,
+                      "Matcher must be callable with a MatcherArg argument");
         auto newMatchers = std::tuple_cat(
             mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
         using NewMatchersType = decltype(newMatchers);
