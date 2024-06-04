@@ -83,10 +83,6 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
     return std::make_tuple(((void)Is, std::forward<T>(element))...);
 }
 
-template<typename Callable>
-struct CallableWithoutArgs {
-    static const bool value = std::is_invocable<Callable>::value;
-};
 } // namespace detail
 
 template<typename Variant, typename Matchers, typename MatcherArgIndexesT>

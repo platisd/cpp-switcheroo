@@ -1,4 +1,3 @@
-#include <functional>
 #include <string>
 #include <variant>
 
@@ -145,10 +144,6 @@ static_assert(
 static_assert(IndexOf<int, std::tuple<int, double, float>>::value == 0);
 static_assert(IndexOf<double, std::tuple<int, double, float>>::value == 1);
 static_assert(IndexOf<float, std::variant<int, double, float>>::value == 2);
-
-// CallableWithoutArgs
-static_assert(CallableWithoutArgs<std::function<void()>>::value);
-static_assert(!CallableWithoutArgs<std::function<void(int)>>::value);
 
 // MissingTypes
 static_assert(
