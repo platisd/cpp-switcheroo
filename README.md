@@ -193,6 +193,6 @@ int main()
 
 ## How to use
 
-It's a single-header library, so copy the `switcheroo` directory or `switcheroo/switcheroo.h`
+It's a single-header library, so copy the `switcheroo` directory or [switcheroo/switcheroo.h](switcheroo/switcheroo.h)
 to your project and `include` it in your source code.
 In [main.cpp](main.cpp) you can see an example of how to use `cpp-switcheroo`.
