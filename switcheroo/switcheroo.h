@@ -128,6 +128,9 @@ public:
     }
 
     /// @brief Add a matcher for a specific type
+    /// @note All your matchers must be added before calling `otherwise`
+    /// @note You can't match the same type twice
+    /// @note All matchers should return the same type
     /// @tparam MatcherArg the type to match (e.g. int, double, etc.)
     /// @tparam Matcher the type of the matcher
     /// @param matcher a lambda that takes a single MatcherArg argument
