@@ -18,8 +18,7 @@ struct Blue {
 };
 
 // Enum types wrapped in a template class
-
-enum class MonthType {
+enum class Month {
     January,
     February,
     March,
@@ -34,9 +33,9 @@ enum class MonthType {
     December
 };
 
-template<MonthType T>
-struct Month {
-    static constexpr MonthType value = T;
+template<Month T>
+struct Wrap {
+    static constexpr Month value = T;
 };
 
 int main()
@@ -65,26 +64,26 @@ int main()
     std::cout << "Result2: " << result2 << '\n'; // Result2: -1
 
     // Enum types wrapped in a template class example
-    using MonthT = std::variant<Month<MonthType::January>,
-                                Month<MonthType::February>,
-                                Month<MonthType::March>,
-                                Month<MonthType::April>,
-                                Month<MonthType::May>,
-                                Month<MonthType::June>,
-                                Month<MonthType::July>,
-                                Month<MonthType::August>,
-                                Month<MonthType::September>,
-                                Month<MonthType::October>,
-                                Month<MonthType::November>,
-                                Month<MonthType::December>>;
+    using MonthT = std::variant<Wrap<Month::January>,
+                                Wrap<Month::February>,
+                                Wrap<Month::March>,
+                                Wrap<Month::April>,
+                                Wrap<Month::May>,
+                                Wrap<Month::June>,
+                                Wrap<Month::July>,
+                                Wrap<Month::August>,
+                                Wrap<Month::September>,
+                                Wrap<Month::October>,
+                                Wrap<Month::November>,
+                                Wrap<Month::December>>;
 
-    const MonthT month{Month<MonthType::February>{}};
+    const MonthT month{Wrap<Month::February>{}};
 
     const auto goodWeather
         = match(month)
-              .when<Month<MonthType::June>>([](auto) { return true; })
-              .when<Month<MonthType::July>>([](auto) { return true; })
-              .when<Month<MonthType::August>>([](auto) { return true; })
+              .when<Wrap<Month::June>>([](auto) { return true; })
+              .when<Wrap<Month::July>>([](auto) { return true; })
+              .when<Wrap<Month::August>>([](auto) { return true; })
               .otherwise([](auto) { return false; })
               .run();
 
