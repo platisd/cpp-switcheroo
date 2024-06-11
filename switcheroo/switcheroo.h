@@ -127,39 +127,36 @@ public:
     {
     }
 
-    /// @brief Add a matcher for a specific type
+    /// @brief Add a matcher for the specified type(s)
     /// @note All your matchers must be added before calling `otherwise`
     /// @note You can't match the same type twice
     /// @note All matchers should return the same type
-    /// @tparam MatcherArg the type to match (e.g. int, double, etc.)
-    /// @tparam Matcher the type of the matcher
+    /// @tparam ...TypesToMatch the type(s) to match (e.g. int, double, etc.)
+    /// @tparam Matcher the type of the matcher (e.g. a lambda)
     /// @param matcher a lambda that takes a single MatcherArg argument
     /// @return a new MatcherBuilder object with the added matcher
-    template<typename MatcherArg, typename Matcher>
+    template<typename... TypesToMatch, typename Matcher>
     [[nodiscard]] auto when(Matcher&& matcher) const
     {
-        static_assert(std::is_invocable<Matcher, MatcherArg>::value,
-                      "Matcher must be callable with a MatcherArg argument");
-        auto newMatchers = std::tuple_cat(
-            mMatchers, std::tuple<Matcher>{std::forward<Matcher>(matcher)});
+        static_assert(
+            (std::is_invocable<Matcher, TypesToMatch>::value && ...),
+            "Matcher must be callable with all TypesToMatch arguments");
+
+        const auto newMatchers = std::tuple_cat(
+            mMatchers,
+            detail::multiplyInTuple(
+                std::forward<Matcher>(matcher),
+                std::make_index_sequence<sizeof...(TypesToMatch)>{}));
         using NewMatchersType = decltype(newMatchers);
 
-        static_assert(detail::TypeIn<MatcherArg, Variant>::value,
+        static_assert((detail::TypeIn<TypesToMatch, Variant>::value && ...),
                       "Matcher type not found in variant");
-
-        const auto matcherArgIndex
-            = detail::IndexOf<MatcherArg, Variant>::value;
-        using MatcherArgIndexType
-            = std::integral_constant<std::size_t, matcherArgIndex>;
-        static_assert(
-            !detail::TypeIn<MatcherArgIndexType, MatcherArgIndexesT>::value,
-            "Type already matched, cannot match again. If you haven't matched "
-            "this argument before, please ensure that `otherwise` is the last "
-            "matcher");
 
         const auto newMatcherArgIndexes = std::tuple_cat(
             mMatcherArgIndexes,
-            std::tuple<MatcherArgIndexType>{MatcherArgIndexType{}});
+            std::tuple<std::integral_constant<
+                std::size_t,
+                detail::IndexOf<TypesToMatch, Variant>::value>...>{});
         using NewMatcherArgIndexesType
             = std::decay_t<decltype(newMatcherArgIndexes)>;
 
@@ -168,7 +165,6 @@ public:
                               NewMatcherArgIndexesType>{
             mVariant, newMatchers, newMatcherArgIndexes};
     }
-
     /// @brief The matcher to use when no other matcher matches
     /// @tparam NewFallbackMatcher the type of the fallback matcher
     /// @param fallbackMatcher the matcher to use when no other matcher
@@ -206,8 +202,8 @@ public:
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<
-                MatcherArgIndexesT> == std::variant_size_v<Variant>,
+            std::tuple_size_v<MatcherArgIndexesT>
+                == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");

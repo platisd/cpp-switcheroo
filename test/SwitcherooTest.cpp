@@ -129,6 +129,25 @@ TEST_F(SwitcherooTest,
         .run();
 }
 
+TEST_F(SwitcherooTest,
+       switcheroo_whenMultipleTypesToMatch_WillInvokeCorrectMatcher)
+{
+    using Color = std::variant<std::monostate, Red, Green, Blue>;
+
+    auto matcher = [&](Color c) {
+        return match(c)
+            .when<Green, Red>([](const auto&) { return 0; })
+            .when<Blue>([](const auto&) { return 1; })
+            .when<std::monostate>([](const auto&) { return 2; })
+            .run();
+    };
+
+    EXPECT_EQ(0, matcher({Green{}}));
+    EXPECT_EQ(0, matcher({Red{}}));
+    EXPECT_EQ(1, matcher({Blue{}}));
+    EXPECT_EQ(2, matcher({}));
+}
+
 namespace switcheroo::detail
 {
 // TypeIn

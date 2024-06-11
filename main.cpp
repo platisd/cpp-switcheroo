@@ -90,5 +90,17 @@ int main()
     std::cout << "Good weather: " << std::boolalpha << goodWeather
               << '\n'; // Good weather: false
 
+    const auto badWeather
+        = match(month)
+              .when<Wrap<Month::January>,
+                    Wrap<Month::February>,
+                    Wrap<Month::March>,
+                    Wrap<Month::April>>([](auto) { return true; })
+              .otherwise([](auto) { return false; })
+              .run();
+
+    std::cout << "Bad weather: " << std::boolalpha << badWeather
+              << '\n'; // Bad weather: true
+
     return 0;
 }

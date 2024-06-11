@@ -152,6 +152,13 @@ int main()
                                       .run();
     std::cout << anotherColorName << std::endl;
 
+    const auto yetAnotherColorName = match(color)
+                                         .when<Red, Green>([](auto) { return "red or green"; })
+                                         .otherwise([](auto) { return "blue"; })
+                                         .run();
+
+    std::cout << yetAnotherColorName << std::endl;
+
     return 0;
 }
 ```
@@ -160,6 +167,7 @@ int main()
 
 - Can be used with many types
     - Allows access to the value of the variant
+    - Specify multiple types in a single `when` statement
 - Can't forget a case
     - Enforced by the compiler
     - Can defer to a default case with `otherwise`
@@ -176,7 +184,6 @@ int main()
 - Needs C++17 or later
 - Requires the inclusion of the `cpp-switcheroo` library (header-only)
 - The least efficient of the three (but unlikely to be a bottleneck)
-
 
 ### Comparison
 
