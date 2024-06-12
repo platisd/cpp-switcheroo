@@ -109,6 +109,14 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
 
 } // namespace detail
 
+/// @brief  The main class of the library, used to build matchers
+/// @tparam Variant the type of the variant to match, i.e. the equivalent of the
+/// type that would go inside a switch statement
+/// @tparam Matchers a tuple of lambdas that will be called when the variant,
+/// i.e. the equivalent of body of each case in a switch statement
+/// @tparam MatcherArgIndexesT a tuple of integral constants that represent the
+/// indexes of the types in the variant, used to determine which matcher
+/// corresponds to which type
 template<typename Variant, typename Matchers, typename MatcherArgIndexesT>
 class MatcherBuilder
 {
