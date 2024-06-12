@@ -126,7 +126,7 @@ public:
     /// @param matchers The matchers (e.g. lambdas for every variant type)
     /// @param matcherArgIndexes The indexes of the matched types (used
     /// internally to determine which matcher corresponds to which type)
-    MatcherBuilder(Variant variant,
+    MatcherBuilder(const Variant& variant,
                    Matchers matchers,
                    MatcherArgIndexesT matcherArgIndexes)
         : mVariant{std::move(variant)}
@@ -210,8 +210,8 @@ public:
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<MatcherArgIndexesT>
-                == std::variant_size_v<Variant>,
+            std::tuple_size_v<
+                MatcherArgIndexesT> == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");
@@ -230,9 +230,9 @@ public:
     }
 
 private:
-    Variant mVariant;
-    Matchers mMatchers;
-    MatcherArgIndexesT mMatcherArgIndexes;
+    const Variant& mVariant;
+    const Matchers mMatchers;
+    const MatcherArgIndexesT mMatcherArgIndexes;
 };
 
 /// @brief Create a new Matcher, this is the entry point of the library
@@ -243,7 +243,7 @@ private:
 /// @return a new MatcherBuilder object to add matchers using the
 /// MatcherBuilder::when and MatcherBuilder::otherwise methods
 template<typename Variant>
-auto match(Variant variant)
+auto match(const Variant& variant)
 {
     return MatcherBuilder{variant, std::tuple<>{}, std::tuple<>{}};
 }
