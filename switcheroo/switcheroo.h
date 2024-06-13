@@ -110,6 +110,7 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
 } // namespace detail
 
 /// @brief  The main class of the library, used to build matchers
+/// @note This class is not meant to be used directly, use the `match` function
 /// @tparam Variant the type of the variant to match, i.e. the equivalent of the
 /// type that would go inside a switch statement
 /// @tparam Matchers a tuple of lambdas that will be called when the variant,
@@ -122,14 +123,16 @@ class MatcherBuilder
 {
 public:
     /// @brief Construct a new MatcherBuilder object (only for internal use)
+    /// @tparam VariantArg the type of the variant
     /// @param variant The variant to match
     /// @param matchers The matchers (e.g. lambdas for every variant type)
     /// @param matcherArgIndexes The indexes of the matched types (used
     /// internally to determine which matcher corresponds to which type)
-    MatcherBuilder(const Variant& variant,
+    template<typename VariantArg>
+    MatcherBuilder(VariantArg&& variant,
                    Matchers matchers,
                    MatcherArgIndexesT matcherArgIndexes)
-        : mVariant{std::move(variant)}
+        : mVariant{std::forward<VariantArg>(variant)}
         , mMatchers{std::move(matchers)}
         , mMatcherArgIndexes{std::move(matcherArgIndexes)}
     {
@@ -210,8 +213,8 @@ public:
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<
-                MatcherArgIndexesT> == std::variant_size_v<Variant>,
+            std::tuple_size_v<MatcherArgIndexesT>
+                == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");
@@ -230,9 +233,9 @@ public:
     }
 
 private:
-    const Variant& mVariant;
-    const Matchers mMatchers;
-    const MatcherArgIndexesT mMatcherArgIndexes;
+    Variant mVariant;
+    Matchers mMatchers;
+    MatcherArgIndexesT mMatcherArgIndexes;
 };
 
 /// @brief Create a new Matcher, this is the entry point of the library
@@ -243,9 +246,10 @@ private:
 /// @return a new MatcherBuilder object to add matchers using the
 /// MatcherBuilder::when and MatcherBuilder::otherwise methods
 template<typename Variant>
-auto match(const Variant& variant)
+auto match(Variant&& variant)
 {
-    return MatcherBuilder{variant, std::tuple<>{}, std::tuple<>{}};
+    return MatcherBuilder<std::decay_t<Variant>, std::tuple<>, std::tuple<>>{
+        std::forward<Variant>(variant), std::tuple<>{}, std::tuple<>{}};
 }
 } // namespace switcheroo
 
