@@ -23,7 +23,7 @@ enum class Color { Red, Green, Blue };
 
 int main()
 {
-    Color color{Color::Green};
+    const Color color{Color::Green};
 
     std::string colorName{};
     switch (color) {
@@ -174,10 +174,10 @@ int main()
     - Does not allow a default case if all cases are covered
 - Type-safe
 - Easier (IMHO) to understand than `std::visit` and the "overload" pattern
-  - Less "exotic" syntax
-  - I would argue developers familiar with the "overload" visitor pattern,
-    would have no issue understanding `cpp-switcheroo` and so would developers who are not familiar with the pattern
-    at all
+    - Less "exotic" syntax
+    - I would argue developers familiar with the "overload" visitor pattern,
+      would have no issue understanding `cpp-switcheroo` and so would developers who are not familiar with the pattern
+      at all
 
 **Cons:**
 
@@ -188,15 +188,15 @@ int main()
 ### Comparison
 
 | Feature                        | `switch` | `Overload` | `cpp-switcheroo` |
-| ------------------------------ | -------- | ---------- | ---------------- |
+|--------------------------------|----------|------------|------------------|
 | Use with many types            | ❌        | ✅          | ✅                |
 | Inhibit forgetting a case      | ❌        | ✅          | ✅                |
 | Avoid unnecessary default case | ❌        | ❌          | ✅                |
-| Easy to understand             | 🥇        | 🥉          | 🥈 (IMHO)         |
+| Easy to understand             | 🥇       | 🥉         | 🥈 (IMHO)        |
 | Works with any C++ standard    | ✅        | ❌          | ❌                |
 | Type-safe                      | ❌        | ✅          | ✅                |
-| Require boilerplate code       | 🥇        | 🥈          | 🥉                |
-| Efficiency                     | 🥇        | 🥈          | 🥉                |
+| Require boilerplate code       | 🥇       | 🥈         | 🥉               |
+| Efficiency                     | 🥇       | 🥈         | 🥉               |
 
 ## How to use
 
