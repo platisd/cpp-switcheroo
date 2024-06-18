@@ -188,15 +188,16 @@ int main()
 ### Comparison
 
 | Feature                        | `switch` | `Overload` | `cpp-switcheroo` |
-|--------------------------------|----------|------------|------------------|
+| ------------------------------ | -------- | ---------- | ---------------- |
 | Use with many types            | ❌        | ✅          | ✅                |
+| Combine multiple cases         | ✅        | ❌          | ✅                |
 | Inhibit forgetting a case      | ❌        | ✅          | ✅                |
 | Avoid unnecessary default case | ❌        | ❌          | ✅                |
-| Easy to understand             | 🥇       | 🥉         | 🥈 (IMHO)        |
+| Easy to understand             | 🥇        | 🥉          | 🥈 (IMHO)         |
 | Works with any C++ standard    | ✅        | ❌          | ❌                |
 | Type-safe                      | ❌        | ✅          | ✅                |
-| Require boilerplate code       | 🥇       | 🥈         | 🥉               |
-| Efficiency                     | 🥇       | 🥈         | 🥉               |
+| Require boilerplate code       | 🥇        | 🥈          | 🥉                |
+| Efficiency                     | 🥇        | 🥈          | 🥉                |
 
 ## How to use
 
