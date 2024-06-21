@@ -76,7 +76,8 @@ struct ToTupleOfIntegralConstants<std::integer_sequence<T, Is...>> {
 
 /// @brief Given two tuples, return a tuple with the types that are in the
 /// second but not in the first tuple, e.g.:
-// std::tuple<int, double, char> and std::tuple<int, char> -> std::tuple<double>
+/// std::tuple<int, char> and std::tuple<int, double, char> --become-->
+/// std::tuple<double>
 /// @tparam Tuple1 the first tuple
 /// @tparam Tuple2 the second tuple
 template<typename Tuple1, typename Tuple2>
