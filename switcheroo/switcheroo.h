@@ -118,7 +118,17 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
 /// i.e. the equivalent of body of each case in a switch statement
 /// @tparam MatcherArgIndexesT a tuple of integral constants that represent the
 /// indexes of the types in the variant, used to determine which matcher
-/// corresponds to which type
+/// corresponds to which type. For example, if the variant is
+/// std::variant<int, double, char> and the matchers are
+/// std::tuple<lambdaForInt, lambdaForChar, lambdaForDouble>, then the
+/// MatcherArgIndexesT would be:
+/// std::tuple<std::integral_constant<std::size_t, 0>,
+///            std::integral_constant<std::size_t, 2>,
+///            std::integral_constant<std::size_t, 1>>
+/// We store the indexes of the types in the variant instead of the types
+/// themselves to avoid having to instantiate the types in the tuple
+/// which would be hard if the types are not default-constructible
+/// or consuming resources if the types are expensive to construct.
 template<typename Variant, typename Matchers, typename MatcherArgIndexesT>
 class MatcherBuilder
 {
@@ -214,8 +224,8 @@ public:
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<MatcherArgIndexesT>
-                == std::variant_size_v<Variant>,
+            std::tuple_size_v<
+                MatcherArgIndexesT> == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");
