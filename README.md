@@ -128,7 +128,7 @@ int main()
 
 #include "switcheroo/switcheroo.h"
 
-struct Red {};
+struct Red { auto toString() const { return "red"; } };
 struct Green {};
 struct Blue {};
 using Color = std::variant<Red, Green, Blue>;
@@ -140,15 +140,15 @@ int main()
     const Color color{Green{}};
 
     const auto colorName = match(color)
-                               .when<Red>([](auto) { return "red"; })
+                               .when<Red>([](const Red& r) { return r.toString(); })
                                .when<Green>([](auto) { return "green"; })
-                               .when<Blue>([](auto) { return "blue"; })
+                               .when<Blue>([]() { return "blue"; })
                                .run();
     std::cout << colorName << std::endl;
 
     const auto anotherColorName = match(color)
                                       .when<Red>([](auto) { return "red"; })
-                                      .otherwise([](auto) { return "not red"; })
+                                      .otherwise([] { return "not red"; })
                                       .run();
     std::cout << anotherColorName << std::endl;
 
@@ -187,17 +187,17 @@ int main()
 
 ### Comparison
 
-| Feature                        | `switch` | `Overload` | `cpp-switcheroo` |
-| ------------------------------ | -------- | ---------- | ---------------- |
-| Use with many types            | ❌        | ✅          | ✅                |
-| Combine multiple cases         | ✅        | ❌          | ✅                |
-| Inhibit forgetting a case      | ❌        | ✅          | ✅                |
-| Avoid unnecessary default case | ❌        | ❌          | ✅                |
-| Easy to understand             | 🥇        | 🥉          | 🥈 (IMHO)         |
-| Works with any C++ standard    | ✅        | ❌          | ❌                |
-| Type-safe                      | ❌        | ✅          | ✅                |
-| Require boilerplate code       | 🥇        | 🥈          | 🥉                |
-| Efficiency                     | 🥇        | 🥈          | 🥉                |
+| Feature                           | `switch` | `Overload` | `cpp-switcheroo` |
+| --------------------------------- | -------- | ---------- | ---------------- |
+| Use with many types               | ❌        | ✅          | ✅                |
+| Combine multiple cases            | ✅        | ❌          | ✅                |
+| Inhibit forgetting a case         | ❌        | ✅          | ✅                |
+| Avoid unnecessary default case    | ❌        | ❌          | ✅                |
+| Easy to understand                | 🥇        | 🥉          | 🥈 (IMHO)         |
+| Works with standards before C++17 | ✅        | ❌          | ❌                |
+| Type-safe                         | ❌        | ✅          | ✅                |
+| Require boilerplate code          | 🥇        | 🥈          | 🥉                |
+| Efficiency                        | 🥇        | 🥈          | 🥉                |
 
 ## How to use
 

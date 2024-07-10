@@ -108,6 +108,23 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
     return std::make_tuple(((void)Is, std::forward<T>(element))...);
 }
 
+/// @brief Wrap a lambda that takes no arguments into a lambda that takes a
+/// single argument that is ignored
+/// @tparam IsInvocableWithoutArgs whether the lambda is invocable without args
+/// @tparam Lambda the type of the lambda
+/// @param lambda the lambda to wrap
+/// @return A new lambda that takes a single argument that is ignored if the
+/// original lambda is invocable without arguments otherwise the original lambda
+template<bool IsInvocableWithoutArgs, typename Lambda>
+auto maybeWrapLambdaWithInputArg(Lambda&& lambda)
+{
+    if constexpr (IsInvocableWithoutArgs) {
+        return [l = std::forward<Lambda>(lambda)](auto&&) { return l(); };
+    } else {
+        return std::forward<Lambda>(lambda);
+    }
+}
+
 } // namespace detail
 
 /// @brief  The main class of the library, used to build matchers
@@ -160,14 +177,20 @@ public:
     template<typename... TypesToMatch, typename Matcher>
     [[nodiscard]] auto when(Matcher&& matcher) const
     {
-        static_assert(
-            (std::is_invocable<Matcher, TypesToMatch>::value && ...),
-            "Matcher must be callable with all TypesToMatch arguments");
+        constexpr bool isInvocableWithOneArg
+            = (std::is_invocable<Matcher, TypesToMatch>::value && ...);
+        constexpr bool isInvocableWithoutArgs
+            = std::is_invocable<Matcher>::value;
+
+        static_assert(isInvocableWithOneArg || isInvocableWithoutArgs,
+                      "Matcher must be callable with one of the provided types "
+                      "or without arguments");
 
         const auto newMatchers = std::tuple_cat(
             mMatchers,
             detail::multiplyInTuple(
-                std::forward<Matcher>(matcher),
+                detail::maybeWrapLambdaWithInputArg<isInvocableWithoutArgs>(
+                    std::forward<Matcher>(matcher)),
                 std::make_index_sequence<sizeof...(TypesToMatch)>{}));
         using NewMatchersType = decltype(newMatchers);
 
@@ -194,6 +217,18 @@ public:
     template<typename NewFallbackMatcher>
     [[nodiscard]] auto otherwise(NewFallbackMatcher&& fallbackMatcher) const
     {
+        // Check if the matcher is invocable with one argument or without
+        // The type should be auto or no argument at all, so we test with int
+        // for the case of auto
+        constexpr bool isInvocableWithOneArg
+            = std::is_invocable<NewFallbackMatcher, int>::value;
+        constexpr bool isInvocableWithoutArgs
+            = std::is_invocable<NewFallbackMatcher>::value;
+
+        static_assert(isInvocableWithOneArg || isInvocableWithoutArgs,
+                      "The fallback matcher must be callable with auto or "
+                      "without arguments");
+
         // Get the missing indexes and store them in a tuple
         using AllIndexesAsIntegralConstants =
             typename detail::ToTupleOfIntegralConstants<
@@ -203,7 +238,8 @@ public:
                                           AllIndexesAsIntegralConstants>::type;
 
         const auto fallbackMatchers = detail::multiplyInTuple(
-            std::forward<NewFallbackMatcher>(fallbackMatcher),
+            detail::maybeWrapLambdaWithInputArg<isInvocableWithoutArgs>(
+                std::forward<NewFallbackMatcher>(fallbackMatcher)),
             std::make_index_sequence<std::tuple_size_v<MissingIndexesType>>{});
 
         auto newMatchers      = std::tuple_cat(mMatchers, fallbackMatchers);

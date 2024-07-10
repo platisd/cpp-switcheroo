@@ -148,6 +148,42 @@ TEST_F(SwitcherooTest,
     EXPECT_EQ(2, matcher({}));
 }
 
+TEST_F(SwitcherooTest, switcheroo_whenLambdaWithNoArguments_WillStillWork)
+{
+    using Color = std::variant<std::monostate, Red, Green, Blue>;
+
+    auto matcher = [&](Color c) {
+        return match(c)
+            .when<Green, Red>([] { return 0; })
+            .when<Blue>([]() { return 1; })
+            .otherwise([](auto&&) { return 2; })
+            .run();
+    };
+
+    EXPECT_EQ(0, matcher({Green{}}));
+    EXPECT_EQ(0, matcher({Red{}}));
+    EXPECT_EQ(1, matcher({Blue{}}));
+    EXPECT_EQ(2, matcher({}));
+}
+
+TEST_F(SwitcherooTest, switcheroo_whenOtherwiseWithNoArguments_WillStillWork)
+{
+    using Color = std::variant<std::monostate, Red, Green, Blue>;
+
+    auto matcher = [&](Color c) {
+        return match(c)
+            .when<Green, Red>([] { return 0; })
+            .when<Blue>([]() { return 1; })
+            .otherwise([] { return 2; })
+            .run();
+    };
+
+    EXPECT_EQ(0, matcher({Green{}}));
+    EXPECT_EQ(0, matcher({Red{}}));
+    EXPECT_EQ(1, matcher({Blue{}}));
+    EXPECT_EQ(2, matcher({}));
+}
+
 namespace switcheroo::detail
 {
 // TypeIn

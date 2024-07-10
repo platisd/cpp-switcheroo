@@ -63,6 +63,15 @@ int main()
                              .run();
     std::cout << "Result2: " << result2 << '\n'; // Result2: -1
 
+    // Lambdas without arguments are also allowed
+    const auto result3
+        = match(color)
+              .when<Red, Green>([] { return 42; }) // Skip parentheses
+              .when<Blue>([](auto&&) { return 1; })
+              .otherwise([]() { return 2; }) // OK with empty parentheses
+              .run();
+    std::cout << "Result3: " << result3 << '\n'; // Result3: 42
+
     // Enum types wrapped in a template class example
     using MonthT = std::variant<Wrap<Month::January>,
                                 Wrap<Month::February>,
@@ -90,6 +99,7 @@ int main()
     std::cout << "Good weather: " << std::boolalpha << goodWeather
               << '\n'; // Good weather: false
 
+    // Match multiple "values"
     const auto badWeather
         = match(month)
               .when<Wrap<Month::January>,
