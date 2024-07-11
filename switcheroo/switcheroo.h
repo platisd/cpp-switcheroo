@@ -110,15 +110,15 @@ auto multiplyInTuple(T&& element, std::index_sequence<Is...>)
 
 /// @brief Wrap a lambda that takes no arguments into a lambda that takes a
 /// single argument that is ignored
-/// @tparam IsInvocableWithoutArgs whether the lambda is invocable without args
 /// @tparam Lambda the type of the lambda
 /// @param lambda the lambda to wrap
 /// @return A new lambda that takes a single argument that is ignored if the
 /// original lambda is invocable without arguments otherwise the original lambda
-template<bool IsInvocableWithoutArgs, typename Lambda>
+template<typename Lambda>
 auto maybeWrapLambdaWithInputArg(Lambda&& lambda)
 {
-    if constexpr (IsInvocableWithoutArgs) {
+    constexpr bool isInvocableWithoutArgs{std::is_invocable<Lambda>::value};
+    if constexpr (isInvocableWithoutArgs) {
         return [l = std::forward<Lambda>(lambda)](auto&&) { return l(); };
     } else {
         return std::forward<Lambda>(lambda);
@@ -189,7 +189,7 @@ public:
         const auto newMatchers = std::tuple_cat(
             mMatchers,
             detail::multiplyInTuple(
-                detail::maybeWrapLambdaWithInputArg<isInvocableWithoutArgs>(
+                detail::maybeWrapLambdaWithInputArg(
                     std::forward<Matcher>(matcher)),
                 std::make_index_sequence<sizeof...(TypesToMatch)>{}));
         using NewMatchersType = decltype(newMatchers);
@@ -238,7 +238,7 @@ public:
                                           AllIndexesAsIntegralConstants>::type;
 
         const auto fallbackMatchers = detail::multiplyInTuple(
-            detail::maybeWrapLambdaWithInputArg<isInvocableWithoutArgs>(
+            detail::maybeWrapLambdaWithInputArg(
                 std::forward<NewFallbackMatcher>(fallbackMatcher)),
             std::make_index_sequence<std::tuple_size_v<MissingIndexesType>>{});
 
@@ -260,8 +260,8 @@ public:
     [[nodiscard]] auto run() const
     {
         static_assert(
-            std::tuple_size_v<
-                MatcherArgIndexesT> == std::variant_size_v<Variant>,
+            std::tuple_size_v<MatcherArgIndexesT>
+                == std::variant_size_v<Variant>,
             "You need to match all types of the variant or provide a fallback "
             "matcher with `otherwise`. Also, you may not match all types of "
             "variant and provide a fallback matcher at the same time");

@@ -233,4 +233,21 @@ TEST(MultiplyInTupleTest, multiplyInTuple)
     EXPECT_EQ(result, std::make_tuple(1, 1, 1));
 }
 
+// maybeWrapLambdaWithInputArg
+TEST(MaybeWrapLambdaWithInputArgTest, maybeWrapLambdaWithInputArg)
+{
+    constexpr int lambdaWithoutArgsResult{42};
+    auto lambdaWithoutArgs = [] { return lambdaWithoutArgsResult; };
+    auto lambdaWithArgs    = [](auto&& arg) { return arg; };
+
+    const auto result1 = maybeWrapLambdaWithInputArg(lambdaWithoutArgs)(1234);
+
+    constexpr int lambdaWithArgsResult{8888};
+    const auto result2
+        = maybeWrapLambdaWithInputArg(lambdaWithArgs)(lambdaWithArgsResult);
+
+    EXPECT_EQ(result1, lambdaWithoutArgsResult); // Input arg is ignored
+    EXPECT_EQ(result2, lambdaWithArgsResult);
+}
+
 } // namespace switcheroo::detail
