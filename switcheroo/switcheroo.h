@@ -91,9 +91,6 @@ struct MissingTypes<std::tuple<Types1...>, std::tuple<Types2...>> {
                            std::tuple<Types2>>{}...));
 };
 
-// Given an element (first argument) and an integer sequence, return a tuple
-// that contains the element repeated as many times as the integer sequence
-
 /// @brief Given an element and an integer sequence, return a tuple that
 /// contains the element repeated as many times as the integer sequence
 ///  e.g multiplyInTuple(5, std::index_sequence<0, 1, 2>) -> std::tuple<5, 5, 5>
